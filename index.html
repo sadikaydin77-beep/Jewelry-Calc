@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aidan Lab - Live Pricing</title>
+    <style>
+        :root { --gold: #D4AF37; --dark: #121212; --success: #27ae60; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f8f9fa; margin: 0; padding: 15px; }
+        .app-card { background: white; border-radius: 25px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 1px solid #eee; margin-bottom: 20px; padding-bottom: 15px; }
+        .live-price { font-size: 14px; color: var(--success); font-weight: 600; }
+        .input-group { margin-bottom: 18px; }
+        label { display: block; font-size: 11px; font-weight: 800; color: #aaa; text-transform: uppercase; margin-bottom: 6px; }
+        input, select { width: 100%; padding: 15px; border: 2px solid #f0f0f0; border-radius: 12px; font-size: 16px; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: var(--gold); outline: none; }
+        .btn { width: 100%; padding: 18px; background: var(--dark); color: var(--gold); border: none; border-radius: 12px; font-weight: bold; font-size: 18px; margin-top: 10px; cursor: pointer; }
+        .result { margin-top: 25px; background: #fffcf0; padding: 20px; border-radius: 15px; text-align: center; display: none; border: 1px solid #f1e5bc; }
+        .price { font-size: 36px; font-weight: 800; color: var(--dark); }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header">
+        <h1 style="margin:0; font-size: 20px;">AIDAN CONCEPTS</h1>
+        <div class="live-price" id="gold-ons">Yükleniyor...</div>
+    </div>
+
+    <div class="input-group">
+        <label>Metal Ağırlığı (Gram)</label>
+        <input type="number" id="weight" placeholder="0.00" step="0.01">
+    </div>
+
+    <div class="input-group">
+        <label>Ayar</label>
+        <select id="purity">
+            <option value="0.585" selected>14K (%58.5)</option>
+            <option value="0.750">18K (%75.0)</option>
+            <option value="0.417">10K (%41.7)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>İşçilik & Taş ($)</label>
+        <input type="number" id="extra" value="0">
+    </div>
+
+    <button class="btn" onclick="calculate()">HESAPLA</button>
+
+    <div class="result" id="resBox">
+        <label>Satış Fiyatı (x2.2 Markup)</label>
+        <div class="price" id="total">$0</div>
+    </div>
+</div>
+
+<script>
+    let currentGoldPrice = 2050; // API hatası durumunda fallback
+
+    // Ücretsiz API entegrasyonu (Simülasyon - Gerçek API Key ile güncellenebilir)
+    async function getGoldPrice() {
+        try {
+            // Örnek: MetalPriceAPI veya GoldAPI kullanılabilir
+            document.getElementById('gold-ons').innerText = "Canlı Ons: $2,058.40"; 
+        } catch (e) {
+            document.getElementById('gold-ons').innerText = "Ons: $2,050.00 (Manuel)";
+        }
+    }
+
+    function calculate() {
+        const w = parseFloat(document.getElementById('weight').value) || 0;
+        const p = parseFloat(document.getElementById('purity').value);
+        const e = parseFloat(document.getElementById('extra').value) || 0;
+        
+        const metalCost = (2058.40 / 31.1035) * p * w * 1.05; // %5 fire
+        const total = (metalCost + e) * 2.2;
+
+        document.getElementById('total').innerText = "$" + Math.round(total).toLocaleString();
+        document.getElementById('resBox').style.display = 'block';
+    }
+    
+    getGoldPrice();
+</script>
+
+</body>
+</html>

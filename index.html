@@ -17,6 +17,7 @@
         .btn { width: 100%; padding: 18px; background: var(--dark); color: var(--gold); border: none; border-radius: 12px; font-weight: bold; font-size: 18px; margin-top: 10px; cursor: pointer; }
         .result { margin-top: 25px; background: #fffcf0; padding: 20px; border-radius: 15px; text-align: center; display: none; border: 1px solid #f1e5bc; }
         .price { font-size: 36px; font-weight: 800; color: var(--dark); }
+        .markup-label { font-size: 12px; color: #888; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -46,10 +47,15 @@
         <input type="number" id="extra" value="0">
     </div>
 
+    <div class="input-group">
+        <label>Markup Çarpanı (Örn: 2.2)</label>
+        <input type="number" id="markupInput" value="2.2" step="0.1">
+    </div>
+
     <button class="btn" onclick="calculate()">HESAPLA</button>
 
     <div class="result" id="resBox">
-        <label>Satış Fiyatı (x2.2 Markup)</label>
+        <label id="resLabel">Satış Fiyatı</label>
         <div class="price" id="total">$0</div>
     </div>
 </div>
@@ -57,13 +63,22 @@
 <script>
     let currentGoldPrice = 2050; // API hatası durumunda fallback
 
-    // Ücretsiz API entegrasyonu (Simülasyon - Gerçek API Key ile güncellenebilir)
     async function getGoldPrice() {
+        const apiKey = "ab6fa1aeb0d4225f516b4e4e89dc7d14";
+        const url = `https://api.metalpriceapi.com/v1/latest?api_key=${apiKey}&base=USD&currencies=XAU`;
+
         try {
-            // Örnek: MetalPriceAPI veya GoldAPI kullanılabilir
-            document.getElementById('gold-ons').innerText = "Canlı Ons: $2,058.40"; 
-        } catch (e) {
-            document.getElementById('gold-ons').innerText = "Ons: $2,050.00 (Manuel)";
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            // 1 USD'nin kaç Ons Altın (XAU) ettiğini verir, 1/x yaparak Ons fiyatını buluruz
+            const goldOuncePrice = 1 / data.rates.XAU; 
+            
+            currentGoldPrice = goldOuncePrice;
+            document.getElementById('gold-ons').innerText = "Canlı Ons: $" + goldOuncePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        } catch (error) {
+            document.getElementById('gold-ons').innerText = "Ons: $2,050.00 (Manuel Mod)";
+            console.error("API Hatası:", error);
         }
     }
 
@@ -71,38 +86,19 @@
         const w = parseFloat(document.getElementById('weight').value) || 0;
         const p = parseFloat(document.getElementById('purity').value);
         const e = parseFloat(document.getElementById('extra').value) || 0;
+        const mu = parseFloat(document.getElementById('markupInput').value) || 1;
         
-        const metalCost = (2058.40 / 31.1035) * p * w * 1.05; // %5 fire
-        const total = (metalCost + e) * 2.2;
+        // Ons fiyatı üzerinden Gram fiyatı (31.1035) + %5 fire (1.05)
+        const metalCost = (currentGoldPrice / 31.1035) * p * w * 1.05; 
+        const total = (metalCost + e) * mu;
 
+        document.getElementById('resLabel').innerText = "Satış Fiyatı (x" + mu + " Markup)";
         document.getElementById('total').innerText = "$" + Math.round(total).toLocaleString();
         document.getElementById('resBox').style.display = 'block';
     }
     
+    // Sayfa her açıldığında fiyatı çek
     getGoldPrice();
-// MetalPriceAPI Entegrasyonu
-async function getGoldPrice() {
-    const apiKey = "ab6fa1aeb0d4225f516b4e4e89dc7d14"; // Tırnak içine anahtarını yaz
-    const url = `https://api.metalpriceapi.com/v1/latest?api_key=${apiKey}&base=USD&currencies=XAU`;
-
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        // API 1 USD'nin kaç Ons Altın (XAU) ettiğini verir, 1/x yaparak Ons fiyatını buluruz
-        const goldOuncePrice = 1 / data.rates.XAU; 
-        
-        currentGoldPrice = goldOuncePrice;
-        document.getElementById('gold-ons').innerText = "Canlı Ons: $" + goldOuncePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        console.log("Canlı fiyat güncellendi: $" + goldOuncePrice);
-    } catch (error) {
-        document.getElementById('gold-ons').innerText = "Ons: $2,050.00 (Manuel Mod)";
-        console.error("API Hatası:", error);
-    }
-}
-
-// Sayfa her açıldığında fiyatı çek
-getGoldPrice();
 </script>
 
 </body>

@@ -80,6 +80,29 @@
     }
     
     getGoldPrice();
+// MetalPriceAPI Entegrasyonu
+async function getGoldPrice() {
+    const apiKey = "ab6fa1aeb0d4225f516b4e4e89dc7d14"; // Tırnak içine anahtarını yaz
+    const url = `https://api.metalpriceapi.com/v1/latest?api_key=${apiKey}&base=USD&currencies=XAU`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        // API 1 USD'nin kaç Ons Altın (XAU) ettiğini verir, 1/x yaparak Ons fiyatını buluruz
+        const goldOuncePrice = 1 / data.rates.XAU; 
+        
+        currentGoldPrice = goldOuncePrice;
+        document.getElementById('gold-ons').innerText = "Canlı Ons: $" + goldOuncePrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        console.log("Canlı fiyat güncellendi: $" + goldOuncePrice);
+    } catch (error) {
+        document.getElementById('gold-ons').innerText = "Ons: $2,050.00 (Manuel Mod)";
+        console.error("API Hatası:", error);
+    }
+}
+
+// Sayfa her açıldığında fiyatı çek
+getGoldPrice();
 </script>
 
 </body>
